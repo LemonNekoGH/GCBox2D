@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "es2015",
+    "target": "es2015",
+    "sourceMap": true,
+    "types": [
+      "box2d.gc"
+    ],
+    "moduleResolution": "Node",
+    "allowSyntheticDefaultImports": true
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
