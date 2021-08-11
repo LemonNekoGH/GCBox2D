@@ -1,9 +1,8 @@
-(function ($) {
-  'use strict';
-
-  function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
-
-  var $__default = /*#__PURE__*/_interopDefaultLegacy($);
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.test = {}));
+}(this, (function (exports) { 'use strict';
 
   // MIT License
   // Copyright (c) 2019 Erin Catto
@@ -284,146 +283,80 @@
   DebugDraw.DrawStringWorld_s_p = new GCBox2D.Vec2();
   DebugDraw.DrawStringWorld_s_cc = new GCBox2D.Vec2();
   DebugDraw.DrawStringWorld_s_color = new GCBox2D.Color(0.5, 0.9, 0.5);
-  new DebugDraw();
+  const g_debugDraw = new DebugDraw();
   const g_camera = new Camera();
 
-  var world;
-  var ctx;
-  var canvas_width;
-  var canvas_height;
-  //box2d to canvas scale , therefor 1 metre of box2d = 100px of canvas :)
-  var scale = 100;
-  /*
-      Draw a world
-      this method is called in a loop to redraw the world
-  */
-  function draw_world(world, context) {
-      //first clear the canvas
-      ctx.clearRect(0, 0, canvas_width, canvas_height);
-      ctx.fillStyle = '#FFF4C9';
-      ctx.fillRect(0, 0, canvas_width, canvas_height);
-      //convert the canvas coordinate directions to cartesian
-      ctx.save();
-      ctx.translate(0, canvas_height);
-      ctx.scale(1, -1);
-      ctx.restore();
-      world.DebugDraw();
-      ctx.font = 'bold 18px arial';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#000000';
-      ctx.fillText('Box2d Hello World Example', 400, 20);
-      ctx.font = 'bold 14px arial';
-      ctx.fillText('Click the screen to add more objects', 400, 40);
+  var Vec2 = GCBox2D.Vec2;
+  var BodyDef = GCBox2D.BodyDef;
+  class Main {
+      constructor() {
+          document.body.style.backgroundColor = "rgba(51,51,51,1.0)";
+          const canvas = document.querySelector("#canvas");
+          this.ctx = canvas.getContext('2d');
+          canvas.addEventListener('click', (event) => {
+              this.createCircle(this.world, 20, new Vec2(event.x, event.y), GCBox2D.BodyType.b2_dynamicBody);
+          });
+          this.world = this.createWorld(new GCBox2D.Vec2(0, 200));
+          this.createGround(this.world);
+          g_debugDraw.m_ctx = this.ctx;
+          g_debugDraw.SetFlags(GCBox2D.DrawFlags.e_shapeBit);
+          this.world.SetDebugDraw(g_debugDraw);
+          this.world.SetAllowSleeping(true);
+          setInterval(this.step, 100 / 6, this);
+      }
+      newDefaultFixtureDef(shape) {
+          const def = new GCBox2D.FixtureDef();
+          def.density = 20;
+          def.friction = 1;
+          def.restitution = 0.8;
+          def.shape = shape;
+          return def;
+      }
+      newDefaultBodyDef(position, bodyType) {
+          const bodyDef = new GCBox2D.BodyDef();
+          bodyDef.type = bodyType;
+          bodyDef.position.Set(position.x, position.y);
+          return bodyDef;
+      }
+      createCircle(world, radius, position, type) {
+          const bodyDef = this.newDefaultBodyDef(position, type);
+          const shape = new GCBox2D.CircleShape(radius);
+          const fixtureDef = this.newDefaultFixtureDef(shape);
+          const body = world.CreateBody(bodyDef);
+          body.CreateFixture(fixtureDef);
+          return body;
+      }
+      createBox(world, height, width, position, type) {
+          let shape = new GCBox2D.PolygonShape();
+          shape = shape.SetAsBox(width / 2, height / 2);
+          const bodyDef = this.newDefaultBodyDef(position, type);
+          const fixtureDef = this.newDefaultFixtureDef(shape);
+          const body = world.CreateBody(bodyDef);
+          body.CreateFixture(fixtureDef);
+          return body;
+      }
+      createGround(world) {
+          const bodyDef = new BodyDef();
+          const ground = world.CreateBody(bodyDef);
+          const shape = new GCBox2D.EdgeShape();
+          shape.SetTwoSided(new Vec2(0, 350), new Vec2(640, 350));
+          ground.CreateFixture(shape, 0);
+      }
+      createWorld(gravity) {
+          const world = new GCBox2D.World(gravity, true);
+          return world;
+      }
+      step(self) {
+          self.ctx.clearRect(0, 0, self.ctx.canvas.width, self.ctx.canvas.height);
+          self.world.Step(1 / 60, 8, 3);
+          self.world.DebugDraw();
+          self.ctx.restore();
+      }
   }
-  //Create box2d world object
-  function createWorld() {
-      //Gravity vector x, y - 10 m/s2 - thats earth!!
-      var gravity = new GCBox2D.Vec2(0, -10);
-      world = new GCBox2D.World(gravity, true);
-      //setup debug draw
-      var debugDraw = new DebugDraw();
-      world.SetDebugDraw(debugDraw);
-      createBox(world, 4, 1, 4, 0.5, { type: GCBox2D.BodyType.b2_staticBody });
-      return world;
-  }
-  //Function to create a ball
-  function createBall(world, x, y, r, options) {
-      var body_def = new GCBox2D.BodyDef();
-      var fix_def = new GCBox2D.FixtureDef;
-      fix_def.density = 1.0;
-      fix_def.friction = 0.5;
-      fix_def.restitution = 0.5;
-      var shape = new GCBox2D.CircleShape(r);
-      fix_def.shape = shape;
-      body_def.position.Set(x, y);
-      body_def.linearDamping = 0.0;
-      body_def.angularDamping = 0.0;
-      body_def.type = GCBox2D.BodyType.b2_dynamicBody;
-      body_def.userData = options.user_data;
-      var b = world.CreateBody(body_def);
-      b.CreateFixture(fix_def);
-      return b;
-  }
-  //Create some elements
-  function createHelloWorld() {
-      // H
-      createBox(world, .5, 2.2, .1, .2);
-      createBox(world, .9, 2.2, .1, .2);
-      createBox(world, .7, 1.95, .3, .05);
-      createBox(world, .5, 1.7, .1, .2);
-      createBox(world, .9, 1.7, .1, .2);
-  }
-  //Create standard boxes of given height , width at x,y
-  function createBox(world, x, y, width, height, options) {
-      //default setting
-      options = $__default['default'].extend(true, {
-          'density': 1.0,
-          'friction': 1.0,
-          'restitution': 0.5,
-          'linearDamping': 0.0,
-          'angularDamping': 0.0,
-          'type': GCBox2D.BodyType.b2_dynamicBody
-      }, options);
-      var body_def = new GCBox2D.BodyDef();
-      var fix_def = new GCBox2D.FixtureDef();
-      fix_def.density = options.density;
-      fix_def.friction = options.friction;
-      fix_def.restitution = options.restitution;
-      const shape = new GCBox2D.PolygonShape();
-      shape.SetAsBox(width, height);
-      fix_def.shape = shape;
-      body_def.position.Set(x, y);
-      body_def.linearDamping = options.linearDamping;
-      body_def.angularDamping = options.angularDamping;
-      body_def.type = options.type;
-      body_def.userData = options.user_data;
-      var b = world.CreateBody(body_def);
-      b.CreateFixture(fix_def);
-      return b;
-  }
-  /*
-      This method will draw the world again and again
-      called by settimeout , self looped
-  */
-  function step() {
-      var fps = 60;
-      var timeStep = 1.0 / fps;
-      //move the world ahead , step ahead man!!
-      world.Step(timeStep, 8, 3);
-      world.ClearForces();
-      draw_world(world);
-  }
-  /*
-      Convert coordinates in canvas to box2d world
-  */
-  function get_real(p) {
-      return new GCBox2D.Vec2(p.x + 0, 6 - p.y);
-  }
-  // main entry point
-  $__default['default'](function () {
-      var canvas = $__default['default']('#canvas');
-      ctx = canvas.get(0).getContext('2d');
-      //first create the world
-      world = createWorld();
-      //get internal dimensions of the canvas
-      canvas_width = parseInt(canvas.attr('width'));
-      canvas_height = parseInt(canvas.attr('height'));
-      //create the hello world boxes in the world
-      createHelloWorld();
-      //click event handler on our world
-      canvas.click(function (e) {
-          var p = get_real(new GCBox2D.Vec2(e.clientX / scale, e.clientY / scale));
-          //create shape
-          if (Math.random() > 0.5) {
-              //Square box
-              createBox(world, p.x, p.y, .1, .1);
-          }
-          else {
-              //circle
-              createBall(world, p.x, p.y, 0.2, { 'user_data': { 'fill_color': 'rgba(204,100,0,0.3)', 'border_color': '#555' } });
-          }
-      });
-      window.setInterval(step, 1000 / 60);
-  });
+  const app = new Main();
 
-}($));
+  exports.app = app;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
+
+})));

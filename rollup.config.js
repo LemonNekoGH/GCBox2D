@@ -4,7 +4,8 @@ export default {
     input: "index.ts",
     output: {
         file: "index.js",
-        format: "iife",
+        format: "umd",
+        name: "test"
     },
     plugins: [
         typescript({

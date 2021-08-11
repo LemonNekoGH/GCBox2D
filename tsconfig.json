@@ -4,10 +4,13 @@
     "target": "es2015",
     "sourceMap": true,
     "types": [
-      "box2d.gc"
+      "GCBox2D",
+      "node"
     ],
     "moduleResolution": "Node",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "declaration": true
   },
   "exclude": [
     "node_modules"

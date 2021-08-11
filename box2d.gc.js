@@ -2225,7 +2225,7 @@ var GCBox2D = (function (exports) {
       const saveA = b2Distance_s_saveA;
       const saveB = b2Distance_s_saveB;
       let saveCount = 0;
-      // Main iteration loop.
+      // Main2 iteration loop.
       let iter = 0;
       while (iter < k_maxIters) {
           // Copy simplex so we can identify duplicates.
@@ -2374,7 +2374,7 @@ var GCBox2D = (function (exports) {
       const sigma = b2Max(b2_polygonRadius, radius - b2_polygonRadius);
       // const float32 tolerance = 0.5f * b2_linearSlop;
       const tolerance = 0.5 * b2_linearSlop;
-      // Main iteration loop.
+      // Main2 iteration loop.
       // const int32 k_maxIters = 20;
       const k_maxIters = 20;
       // int32 iter = 0;
@@ -3588,7 +3588,7 @@ var GCBox2D = (function (exports) {
               // Free node in pool
               continue;
             }
-      
+
             totalArea += node.aabb.GetPerimeter();
           }
           */
@@ -3684,9 +3684,9 @@ var GCBox2D = (function (exports) {
             if (node.height <= 1) {
               continue;
             }
-      
+
             b2Assert(!node.IsLeaf());
-      
+
             int32 child1 = node.child1;
             int32 child2 = node.child2;
             int32 balance = b2Abs(m_nodes[child2].height - m_nodes[child1].height);
@@ -3699,14 +3699,14 @@ var GCBox2D = (function (exports) {
           /*
           int32* nodes = (int32*)b2Alloc(m_nodeCount * sizeof(int32));
           int32 count = 0;
-      
+
           // Build array of leaves. Free the rest.
           for (int32 i = 0; i < m_nodeCapacity; ++i) {
             if (m_nodes[i].height < 0) {
               // free node in pool
               continue;
             }
-      
+
             if (m_nodes[i].IsLeaf()) {
               m_nodes[i].parent = b2_nullNode;
               nodes[count] = i;
@@ -3715,13 +3715,13 @@ var GCBox2D = (function (exports) {
               FreeNode(i);
             }
           }
-      
+
           while (count > 1) {
             float32 minCost = b2_maxFloat;
             int32 iMin = -1, jMin = -1;
             for (int32 i = 0; i < count; ++i) {
               b2AABB aabbi = m_nodes[nodes[i]].aabb;
-      
+
               for (int32 j = i + 1; j < count; ++j) {
                 b2AABB aabbj = m_nodes[nodes[j]].aabb;
                 b2AABB b;
@@ -3734,12 +3734,12 @@ var GCBox2D = (function (exports) {
                 }
               }
             }
-      
+
             int32 index1 = nodes[iMin];
             int32 index2 = nodes[jMin];
             b2TreeNode<T>* child1 = m_nodes + index1;
             b2TreeNode<T>* child2 = m_nodes + index2;
-      
+
             int32 parentIndex = AllocateNode();
             b2TreeNode<T>* parent = m_nodes + parentIndex;
             parent.child1 = index1;
@@ -3747,15 +3747,15 @@ var GCBox2D = (function (exports) {
             parent.height = 1 + b2Max(child1.height, child2.height);
             parent.aabb.Combine(child1.aabb, child2.aabb);
             parent.parent = b2_nullNode;
-      
+
             child1.parent = parentIndex;
             child2.parent = parentIndex;
-      
+
             nodes[jMin] = nodes[count-1];
             nodes[iMin] = parentIndex;
             --count;
           }
-      
+
           m_root = nodes[0];
           b2Free(nodes);
           */
@@ -6164,19 +6164,19 @@ var GCBox2D = (function (exports) {
                 float32 dx = 1.0f / N;
                 float32 xs[N+1];
                 float32 fs[N+1];
-          
+
                 float32 x = 0.0f;
-          
+
                 for (int32 i = 0; i <= N; ++i) {
                   sweepA.GetTransform(&xfA, x);
                   sweepB.GetTransform(&xfB, x);
                   float32 f = fcn.Evaluate(xfA, xfB) - target;
-          
+
                   printf("%g %g\n", x, f);
-          
+
                   xs[i] = x;
                   fs[i] = f;
-          
+
                   x += dx;
                 }
               }
@@ -9886,11 +9886,11 @@ var GCBox2D = (function (exports) {
                           // Postconditions
                           dv1 = vB + b2Cross(wB, cp1->rB) - vA - b2Cross(wA, cp1->rA);
                           dv2 = vB + b2Cross(wB, cp2->rB) - vA - b2Cross(wA, cp2->rA);
-              
+
                           // Compute normal velocity
                           vn1 = b2Dot(dv1, normal);
                           vn2 = b2Dot(dv2, normal);
-              
+
                           b2Assert(b2Abs(vn1 - cp1->velocityBias) < k_errorTol);
                           b2Assert(b2Abs(vn2 - cp2->velocityBias) < k_errorTol);
                           #endif
@@ -9932,10 +9932,10 @@ var GCBox2D = (function (exports) {
                           #if B2_DEBUG_SOLVER === 1
                           // Postconditions
                           dv1 = vB + b2Cross(wB, cp1->rB) - vA - b2Cross(wA, cp1->rA);
-              
+
                           // Compute normal velocity
                           vn1 = b2Dot(dv1, normal);
-              
+
                           b2Assert(b2Abs(vn1 - cp1->velocityBias) < k_errorTol);
                           #endif
                           */
@@ -9976,10 +9976,10 @@ var GCBox2D = (function (exports) {
                           #if B2_DEBUG_SOLVER === 1
                           // Postconditions
                           dv2 = vB + b2Cross(wB, cp2->rB) - vA - b2Cross(wA, cp2->rA);
-              
+
                           // Compute normal velocity
                           vn2 = b2Dot(dv2, normal);
-              
+
                           b2Assert(b2Abs(vn2 - cp2->velocityBias) < k_errorTol);
                           #endif
                           */
@@ -11270,25 +11270,25 @@ var GCBox2D = (function (exports) {
               b2Contact* c = this.m_contacts[i];
               b2Fixture* fA = c.GetFixtureA();
               b2Fixture* fB = c.GetFixtureB();
-        
+
               b2Body* bA = fA.GetBody();
               b2Body* bB = fB.GetBody();
-        
+
               int32 indexA = c.GetChildIndexA();
               int32 indexB = c.GetChildIndexB();
-        
+
               b2DistanceInput input;
               input.proxyA.Set(fA.GetShape(), indexA);
               input.proxyB.Set(fB.GetShape(), indexB);
               input.transformA = bA.GetTransform();
               input.transformB = bB.GetTransform();
               input.useRadii = false;
-        
+
               b2DistanceOutput output;
               b2SimplexCache cache;
               cache.count = 0;
               b2Distance(&output, &cache, &input);
-        
+
               if (output.distance === 0 || cache.count === 3) {
                 cache.count += 0;
               }

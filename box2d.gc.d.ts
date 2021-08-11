@@ -4,6 +4,10 @@ declare module GCBox2D {
      */
     export class World {
         m_bodyList: Body
+        m_debugDraw: Draw
+        m_gravity: Vec2
+        m_controllerList: Controller
+        m_clearForces: boolean
 
         /**
          * 创建一个世界
@@ -19,8 +23,12 @@ declare module GCBox2D {
         DebugDraw(): void
 
         ClearForces(): void
-
+        SetContinuousPhysics(b: boolean)
         Step(dt: number, velocityIterations: number, positionIterations: number): void
+        SetWarmStarting(b: boolean)
+        SetDebugDraw(draw: Draw)
+        SetAllowSleeping(allow: boolean)
+        AddController(c: Controller)
     }
 
     /**
@@ -64,10 +72,16 @@ declare module GCBox2D {
         m_type: BodyType
         m_prev: Body
         m_next: Body
+        /**
+         * 受到的力
+         */
+        m_force: Vec2
 
         constructor()
 
         CreateFixture(fixtureDef: FixtureDef): Fixture
+        CreateFixture(shape: Shape): Fixture
+        CreateFixture(shape: Shape, density: number): Fixture
     }
 
     export class CircleShape extends Shape{
@@ -81,8 +95,17 @@ declare module GCBox2D {
 
     export class FixtureDef {
         shape: Shape
+        /**
+         * 物体密度
+         */
         density: number
+        /**
+         * 摩擦系数
+         */
         friction: number
+        /**
+         * 弹力
+         */
         restitution: number
 
         constructor()
@@ -96,6 +119,9 @@ declare module GCBox2D {
      * 多边形
      */
     export class PolygonShape extends Shape {
+        /**
+         * 多边形边数
+         */
         m_count: number
 
         SetAsBox(x: number, y: number, center?: XY, angle?: number): PolygonShape
@@ -161,7 +187,74 @@ declare module GCBox2D {
         MakeStyleString(alpha?: number)
     }
 
-    export class Draw {}
+    export abstract class Draw {
+        m_drawFlags: DrawFlags
+
+        SetFlags(flags: DrawFlags)
+        GetFlags(): DrawFlags
+        AppendFlags(flags: DrawFlags)
+        ClearFlags(flags: DrawFlags)
+
+        abstract PushTransform(xf: Transform)
+        abstract PopTransform(xf: Transform)
+        abstract DrawPolygon(vertices: XY[], vertexCount: number, color: RGBA)
+        abstract DrawSolidPolygon(vertices: XY[], vertexCount: number, color: RGBA)
+        abstract DrawCircle(center: XY, radius: number, color: RGBA)
+        abstract DrawSolidCircle(center: XY, radius: number, axis: XY, color: RGBA)
+        abstract DrawParticles(centers: XY[], radius: number, colors: RGBA[], count: number): void
+        abstract DrawSegment(p1: XY, p2: XY, color: RGBA): void
+        abstract DrawTransform(xf: Transform): void
+        abstract DrawPoint(p: XY, size: number, color: RGBA): void
+    }
+
+    export class RGBA {}
 
     export const pi: number
+
+    export enum DrawFlags {
+        e_none = 0,
+        e_shapeBit = 0x0001,
+        e_jointBit = 0x0002,
+        e_aabbBit = 0x0004,
+        e_pairBit = 0x0008,
+        e_centerOfMassBit = 0x0010,
+        e_particleBit = 0x0020,
+        e_controllerBit = 0x0040,
+        e_all = 0x003f
+    }
+
+    export class TimeStep {
+        public dt: number
+        public inv_dt: number
+        public dtRatio: number
+        public velocityIterations: number
+        public positionIterations: number
+        public particleIterations: number
+        public warmStarting: boolean
+
+        public Copy(step: TimeStep): TimeStep
+    }
+
+    export abstract class Controller {
+        m_prev: Controller
+        m_next: Controller
+
+        abstract Step(step: TimeStep)
+        abstract AddBody(bd: Body)
+    }
+
+    /**
+     * 重力控制器
+     */
+    export class GravityController extends Controller {
+        Step(step: TimeStep)
+        AddBody(bd: GCBox2D.Body)
+    }
+
+    /**
+     * 边界
+     */
+    export class EdgeShape extends Shape {
+        SetTwoSided(vec1: XY, vec2: XY): EdgeShape
+    }
 }
